@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ sprint.name }} · Foreman{% endblock %}
+{% block content %}
+<header class="sprint-header">
+  <div>
+    <h1>{{ sprint.name }} <span class="badge status-{{ sprint.status }}">{{ sprint.status }}</span></h1>
+    {% if sprint.goal %}<p class="goal">{{ sprint.goal }}</p>{% endif %}
+    <p class="muted">
+      {{ sprint.start_date }} → {{ sprint.end_date }} · Day {{ overview.day_number }} of 14
+    </p>
+  </div>
+  <div class="sprint-actions">
+    {% if sprint.status == "planned" %}
+    <form method="post" action="/sprints/{{ sprint.sprint_id }}/start">
+      <button type="submit">Start sprint</button>
+    </form>
+    {% elif sprint.status == "active" %}
+    <form class="stacked" method="post" action="/sprints/{{ sprint.sprint_id }}/close">
+      <label>Retrospective <textarea name="retrospective" rows="2"></textarea></label>
+      <button type="submit">Close sprint</button>
+    </form>
+    {% endif %}
+  </div>
+</header>
+
+{% if sprint.retrospective %}
+<section class="retrospective">
+  <h2>Retrospective</h2>
+  <pre class="entry-body">{{ sprint.retrospective }}</pre>
+</section>
+{% endif %}
+
+<nav class="day-nav">
+  <a href="/sprints/{{ sprint.sprint_id }}/day/{{ today }}">Today's digest</a>
+  <form method="get" action="/sprints/{{ sprint.sprint_id }}/day">
+    <input type="date" name="day" value="{{ today }}" required>
+    <button type="submit">Go to day</button>
+  </form>
+</nav>
+
+<section id="board"
+         class="board"
+         hx-get="/sprints/{{ sprint.sprint_id }}"
+         hx-select="#board"
+         hx-swap="outerHTML"
+         hx-trigger="item-status-changed from:body"
+         hx-disinherit="*">
+  {% for status, items in columns %}
+  <div class="column">
+    <h2>{{ status }} <span class="count">{{ overview.counts[status] }}</span></h2>
+    {% for item in items %}
+    {% include "partials/item_card.html" %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+</section>
+
+{% if is_open %}
+<section>
+  <h2>Add work item</h2>
+  <form class="stacked" method="post" action="/items">
+    <input type="hidden" name="sprint_id" value="{{ sprint.sprint_id }}">
+    <label>Title <input name="title" required></label>
+    <label>Kind
+      <select name="kind">
+        {% for kind in work_kinds %}<option value="{{ kind }}">{{ kind }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Priority
+      <select name="priority">
+        {% for priority in priorities %}
+        <option value="{{ priority }}" {% if priority == "medium" %}selected{% endif %}>{{ priority }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Ticket key <input name="ticket_key" placeholder="DEV-82"></label>
+    <label>Repo <input name="repo"></label>
+    <label>Description <textarea name="description" rows="3"></textarea></label>
+    <button type="submit">Add item</button>
+  </form>
+</section>
+{% endif %}
+
+<section>
+  <h2>Timeline</h2>
+  {% if is_open %}
+  <form class="stacked"
+        hx-post="/entries"
+        hx-target="#entry-list"
+        hx-swap="outerHTML"
+        hx-on::after-request="if (event.detail.successful) this.reset()">
+    <input type="hidden" name="sprint_id" value="{{ sprint.sprint_id }}">
+    <label>Kind
+      <select name="kind">
+        {% for kind in entry_kinds %}<option value="{{ kind }}">{{ kind }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Sprint note <textarea name="body" rows="3" required></textarea></label>
+    <button type="submit">Add entry</button>
+  </form>
+  {% endif %}
+  {% include "partials/entry_list.html" %}
+</section>
+{% endblock %}

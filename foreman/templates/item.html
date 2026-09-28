@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} · Foreman{% endblock %}
+{% block content %}
+<p class="muted"><a href="/sprints/{{ sprint.sprint_id }}">← {{ sprint.name }}</a></p>
+
+{% include "partials/item_card.html" %}
+
+<dl class="fields">
+  <dt>ID</dt><dd>{{ item.work_item_id }}</dd>
+  <dt>Description</dt><dd><pre class="entry-body">{{ item.description or "—" }}</pre></dd>
+  <dt>Created</dt><dd>{{ item.created_at | timestamp }}</dd>
+  <dt>Updated</dt><dd>{{ item.updated_at | timestamp }}</dd>
+</dl>
+
+<section>
+  <h2>Timeline</h2>
+  <form class="stacked"
+        hx-post="/entries"
+        hx-target="#entry-list"
+        hx-swap="outerHTML"
+        hx-on::after-request="if (event.detail.successful) this.reset()">
+    <input type="hidden" name="sprint_id" value="{{ sprint.sprint_id }}">
+    <input type="hidden" name="work_item_id" value="{{ item.work_item_id }}">
+    <label>Kind
+      <select name="kind">
+        {% for kind in entry_kinds %}<option value="{{ kind }}">{{ kind }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Entry <textarea name="body" rows="3" required></textarea></label>
+    <button type="submit">Add entry</button>
+  </form>
+  <div hx-get="/items/{{ item.work_item_id }}"
+       hx-select="#entry-list"
+       hx-target="#entry-list"
+       hx-swap="outerHTML"
+       hx-trigger="item-status-changed from:body"
+       hx-disinherit="*">
+    {% include "partials/entry_list.html" %}
+  </div>
+</section>
+{% endblock %}

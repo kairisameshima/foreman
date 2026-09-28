@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ digest.day }} · {{ sprint.name }} · Foreman{% endblock %}
+{% block content %}
+<p class="muted"><a href="/sprints/{{ sprint.sprint_id }}">← {{ sprint.name }}</a></p>
+<nav class="day-nav">
+  <a href="/sprints/{{ sprint.sprint_id }}/day/{{ previous_day }}">← {{ previous_day }}</a>
+  <h1>{{ digest.day }}</h1>
+  <a href="/sprints/{{ sprint.sprint_id }}/day/{{ next_day }}">{{ next_day }} →</a>
+</nav>
+
+{% for item, entries in digest.entries_by_item %}
+<section class="digest-group">
+  {% if item %}
+  <h2><a href="/items/{{ item.work_item_id }}">{{ item.title }}</a>
+    <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+    <span class="badge kind-{{ item.kind }}">{{ item.kind }}</span>
+  </h2>
+  {% else %}
+  <h2>Sprint notes</h2>
+  {% endif %}
+  {% with item_titles = {item.work_item_id: item.title} if item else {} %}
+  {% include "partials/entry_list.html" %}
+  {% endwith %}
+</section>
+{% else %}
+<p class="muted">No entries on this day.</p>
+{% endfor %}
+{% endblock %}

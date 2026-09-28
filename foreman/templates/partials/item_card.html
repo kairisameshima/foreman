@@ -1,0 +1,24 @@
+<article class="item-card" id="card-{{ item.work_item_id }}">
+  <header>
+    <a class="item-title" href="/items/{{ item.work_item_id }}">{{ item.title }}</a>
+  </header>
+  <div class="badges">
+    <span class="badge kind-{{ item.kind }}">{{ item.kind }}</span>
+    <span class="badge priority-{{ item.priority }}">{{ item.priority }}</span>
+    {% if item.ticket_key %}
+    <a class="ticket" href="{{ item.ticket_key | ticket_url }}" target="_blank" rel="noopener">{{ item.ticket_key }}</a>
+    {% endif %}
+    {% if item.repo %}<span class="repo">{{ item.repo }}</span>{% endif %}
+  </div>
+  <div class="status-buttons">
+    {% for status in work_statuses %}
+    <button type="button"
+            class="status-{{ status }}"
+            hx-post="/items/{{ item.work_item_id }}/status"
+            hx-vals='{"status": "{{ status }}"}'
+            hx-target="closest .item-card"
+            hx-swap="outerHTML"
+            {% if status == item.status %}disabled{% endif %}>{{ status }}</button>
+    {% endfor %}
+  </div>
+</article>

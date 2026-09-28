@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Sprints</h1>
+{% if sprints %}
+<table class="sprint-table">
+  <thead>
+    <tr><th>Name</th><th>Dates</th><th>Status</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for sprint in sprints %}
+    <tr>
+      <td><a href="/sprints/{{ sprint.sprint_id }}">{{ sprint.name }}</a></td>
+      <td>{{ sprint.start_date }} → {{ sprint.end_date }}</td>
+      <td><span class="badge status-{{ sprint.status }}">{{ sprint.status }}</span></td>
+      <td>
+        {% if sprint.status == "planned" %}
+        <form method="post" action="/sprints/{{ sprint.sprint_id }}/start">
+          <button type="submit">Start</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No sprints yet.</p>
+{% endif %}
+
+<h2>New sprint</h2>
+<form class="stacked" method="post" action="/sprints">
+  <label>Name <input name="name" required></label>
+  <label>Goal <input name="goal"></label>
+  <label>Start date <input type="date" name="start_date" value="{{ today }}" required></label>
+  <button type="submit">Create sprint</button>
+</form>
+{% endblock %}

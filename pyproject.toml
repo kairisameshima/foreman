@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "foreman"
+version = "0.1.0"
+description = "Local sprint manager exposed as an MCP server and a web UI"
+authors = ["Kairi Sameshima <kairi@farsight-ai.com>"]
+packages = [{ include = "foreman" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "*"
+uvicorn = { version = "*", extras = ["standard"] }
+jinja2 = "*"
+python-multipart = "*"
+boto3 = "*"
+pydantic = "^2"
+mcp = "^1.28"
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+flake8 = "*"
+mypy = "*"
+boto3-stubs = { version = "*", extras = ["dynamodb"] }
+
+[tool.black]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,35 @@
+services:
+  foreman:
+    build: .
+    ports:
+      - "8765:8765"
+    environment:
+      PORT: "8765"
+      DYNAMODB_ENDPOINT: http://dynamodb:8000
+      FOREMAN_TABLE: foreman
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      AWS_DEFAULT_REGION: local
+      TICKET_URL_TEMPLATE: https://linear.app/farsight-ai/issue/{ticket_key}
+    depends_on:
+      - dynamodb
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8765/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  dynamodb:
+    image: amazon/dynamodb-local:2.5.2
+    # The named volume is root-owned and the image's default user cannot write to it.
+    user: root
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "/home/dynamodblocal/data", "-disableTelemetry"]
+    volumes:
+      - foreman-dynamodb:/home/dynamodblocal/data
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+
+volumes:
+  foreman-dynamodb: {}

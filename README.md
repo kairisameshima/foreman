@@ -4,27 +4,51 @@ Local sprint manager for agents. Agents record sprints, planned and unplanned wo
 
 One FastAPI process serves both the MCP endpoint and the UI. Data lives in DynamoDB Local on a named Docker volume.
 
-## Run
+## Install
 
-```bash
-docker compose up --build -d
-```
+Requires Docker with Compose.
+
+1. Start the server:
+
+   ```bash
+   git clone https://github.com/kairisameshima/foreman.git
+   cd foreman
+   docker compose up --build -d
+   ```
+
+2. Check that it is running:
+
+   ```bash
+   curl http://localhost:8765/health
+   ```
+
+   Expected output: `{"status":"ok"}`
+
+3. Register the MCP server with your agent (see below).
+
+Endpoints:
 
 - UI: http://localhost:8765/
 - MCP endpoint (Streamable HTTP): http://localhost:8765/mcp
 - DynamoDB Local on the host: http://localhost:8001 (for `aws dynamodb ... --endpoint-url`)
 
-The table is created on first start.
+The table is created on first start. The containers restart automatically with Docker.
 
 ## Register with agents
 
-Claude Code, for every project directory:
+The MCP endpoint is a plain HTTP server, so no command or package is installed on the agent side. Each agent only needs the URL `http://localhost:8765/mcp`. If you change the published port in `docker-compose.yml`, change the URL to match.
+
+### Claude Code
+
+User scope, available in every project:
 
 ```bash
 claude mcp add --transport http --scope user foreman http://localhost:8765/mcp
 ```
 
-Per project `.mcp.json`:
+Verify with `claude mcp list`.
+
+To share it with a team instead, put this in a project `.mcp.json`:
 
 ```json
 {
@@ -33,6 +57,37 @@ Per project `.mcp.json`:
   }
 }
 ```
+
+### Codex
+
+```bash
+codex mcp add foreman --url http://localhost:8765/mcp
+```
+
+Verify with `codex mcp list`.
+
+Equivalent entry in `~/.codex/config.toml` (or a project `.codex/config.toml`):
+
+```toml
+[mcp_servers.foreman]
+url = "http://localhost:8765/mcp"
+```
+
+### omp
+
+omp does not need its own entry if you already registered Foreman with Claude Code or Codex. It imports servers from `~/.claude.json`, project `.mcp.json`, and `~/.codex/config.toml`.
+
+To register it with omp directly, run `/mcp add` inside omp and choose the HTTP transport with the URL above. Or add it to `~/.omp/agent/mcp.json` (all projects) or `.omp/mcp.json` (one project):
+
+```json
+{
+  "mcpServers": {
+    "foreman": { "type": "http", "url": "http://localhost:8765/mcp" }
+  }
+}
+```
+
+Run `/mcp reload` in a running session, then `/mcp list` to verify. Tools are named `mcp__foreman_<tool>`.
 
 ## Tools
 

@@ -7,7 +7,7 @@
 
 <dl class="fields">
   <dt>ID</dt><dd>{{ item.work_item_id }}</dd>
-  <dt>Description</dt><dd><pre class="entry-body">{{ item.description or "—" }}</pre></dd>
+  <dt>Description</dt><dd>{% if item.description %}<div class="markdown">{{ item.description | markdown }}</div>{% else %}—{% endif %}</dd>
   <dt>Created</dt><dd>{{ item.created_at | timestamp }}</dd>
   <dt>Updated</dt><dd>{{ item.updated_at | timestamp }}</dd>
 </dl>

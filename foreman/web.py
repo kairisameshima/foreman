@@ -5,6 +5,8 @@ from typing import Annotated
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
+from markdown_it import MarkdownIt
+from markupsafe import Markup
 
 from foreman.config import settings
 from foreman.models import (
@@ -24,6 +26,10 @@ UI_SOURCE = "ui"
 ITEM_ENTRY_LIMIT = 100
 STATUS_CHANGED_EVENT = "item-status-changed"
 UI_ENTRY_KINDS = [kind for kind in EntryKind if kind != EntryKind.STATUS_CHANGE]
+
+# html=False makes markdown-it escape raw HTML, and it rejects javascript: link targets,
+# so agent-written text is safe to render without a separate sanitizer.
+markdown_renderer = MarkdownIt("commonmark", {"html": False}).enable(["table", "strikethrough"])
 
 router = APIRouter()
 templates = Jinja2Templates(directory=PACKAGE_DIR / "templates")
@@ -50,6 +56,11 @@ def format_timestamp(value: datetime) -> str:
     return value.strftime("%Y-%m-%d %H:%M UTC")
 
 
+def render_markdown(text: str) -> Markup:
+    return Markup(markdown_renderer.render(text))
+
+
+templates.env.filters["markdown"] = render_markdown
 templates.env.filters["ticket_url"] = ticket_url
 templates.env.filters["timestamp"] = format_timestamp
 templates.env.globals["work_statuses"] = list(WorkStatus)

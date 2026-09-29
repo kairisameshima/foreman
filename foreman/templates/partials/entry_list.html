@@ -9,7 +9,7 @@
       <a href="/items/{{ entry.work_item_id }}">{{ item_titles.get(entry.work_item_id, entry.work_item_id) }}</a>
       {% endif %}
     </div>
-    <pre class="entry-body">{{ entry.body }}</pre>
+    <div class="markdown">{{ entry.body | markdown }}</div>
   </li>
   {% else %}
   <li class="muted">No entries yet.</li>

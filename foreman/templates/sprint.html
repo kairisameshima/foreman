@@ -4,7 +4,7 @@
 <header class="sprint-header">
   <div>
     <h1>{{ sprint.name }} <span class="badge status-{{ sprint.status }}">{{ sprint.status }}</span></h1>
-    {% if sprint.goal %}<p class="goal">{{ sprint.goal }}</p>{% endif %}
+    {% if sprint.goal %}<div class="goal markdown">{{ sprint.goal | markdown }}</div>{% endif %}
     <p class="muted">
       {{ sprint.start_date }} → {{ sprint.end_date }} · Day {{ overview.day_number }} of 14
     </p>
@@ -26,7 +26,7 @@
 {% if sprint.retrospective %}
 <section class="retrospective">
   <h2>Retrospective</h2>
-  <pre class="entry-body">{{ sprint.retrospective }}</pre>
+  <div class="markdown">{{ sprint.retrospective | markdown }}</div>
 </section>
 {% endif %}
 
